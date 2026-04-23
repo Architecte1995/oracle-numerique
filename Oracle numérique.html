@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Oracle Numérique — Cathédrale 1995</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+body {
+  background: #000; color: #00FF41;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px; line-height: 1.5;
+  padding: 12px; max-width: 600px; margin: 0 auto;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+h1 {
+  text-align: center; font-size: 20px; margin: 16px 0 12px;
+  letter-spacing: 0.12em; text-shadow: 0 0 10px rgba(0,255,65,0.3);
+}
+#inwrap { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+#numInput {
+  background: #001100; border: 1px solid #00FF41; color: #00FF41;
+  font-family: inherit; font-size: 18px; padding: 10px; text-align: center;
+}
+#hint { font-size: 10px; opacity: 0.5; text-align: center; }
+#btnRow { display: flex; gap: 8px; justify-content: center; }
+button {
+  background: #003300; border: 1px solid #00FF41; color: #00FF41;
+  font-family: inherit; font-size: 13px; font-weight: bold;
+  padding: 8px 16px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em;
+}
+button:active { background: #00FF41; color: #000; }
+#btnInstall { display: none; background: rgba(201,162,39,0.15); border-color: #C9A227; color: #C9A227; font-size: 11px; padding: 6px 12px; }
+#err { color: #ff4444; text-align: center; font-size: 11px; margin-bottom: 8px; min-height: 16px; }
+#res { display: none; border: 1px solid #00FF41; padding: 12px; margin-top: 8px; }
+#res.show { display: block; }
+#bigNum { font-size: 32px; font-weight: bold; text-align: center; margin-bottom: 8px; word-break: break-all; }
+#tags { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 12px; }
+.tag { font-size: 11px; border: 1px solid; padding: 2px 6px; border-radius: 3px; }
+#bioName { font-weight: bold; color: #00FF41; margin-bottom: 4px; }
+#bioYears { font-size: 10px; opacity: 0.6; margin-bottom: 8px; }
+#bioText { font-size: 12px; text-align: justify; margin-bottom: 8px; opacity: 0.9; }
+#bioOracle { font-size: 11px; font-style: italic; border-top: 1px solid #004400; padding-top: 8px; opacity: 0.9; }
+</style>
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+
+<h1>ORACLE NUMÉRIQUE</h1>
+
+<div id="inwrap">
+  <input type="text" id="numInput" placeholder="Tapez un nombre..." inputmode="numeric">
+  <div id="hint">1 — 7 733 377</div>
+  <div id="btnRow">
+    <button id="btnOracle">Consultation</button>
+    <button id="btnInstall">⬇ Installer</button>
+  </div>
+</div>
+
+<div id="err"></div>
+
+<div id="res">
+  <div id="bigNum">0</div>
+  <div id="tags"></div>
+  <div id="bioName"></div>
+  <div id="bioYears"></div>
+  <div id="bioText"></div>
+  <div id="bioOracle"></div>
+</div>
+
+<script>
+const MAX = 7733377;
+
+const souls = [
+{name:"Hypatie",y:"355-415",t:"philosophe assassinée",b:"Elle enseignait la géométrie dans les rues d'Alexandrie. Le patriarche Cyrille la fit déchiqueter par une foule de chrétiens fanatiques. Ses restes furent brûlés.",o:"Ce nombre est une femme dans une ville d'hommes. Il éclaire, et on le tue pour ça."},
+{name:"Évariste Galois",y:"1811-1832",t:"duel nocturne",b:"La nuit avant le duel, il écrivit 60 pages de mathématiques en marge, en hâte, en sang. Il avait 20 ans. Son adversaire était un officier royaliste. Le matin, il mourut d'un coup de pistolet au ventre.",o:"Ce nombre est jeune, trop jeune. Il porte une lettre qu'il n'aura pas le temps d'envoyer."},
+{name:"Sophie Germain",y:"1776-1831",t:"masque masculin",b:"Elle signait ses lettres à Gauss sous le nom de « Monsieur Le Blanc » pour que ses théorèmes soient lus. Elle mourut sans jamais avoir été admise à l'Université.",o:"Ce nombre porte un masque masculin. Sous le masque, une armure faite de silence."},
+{name:"Srinivasa Ramanujan",y:"1887-1920",t:"rêves divins",b:"Il crut que les formules lui étaient dictées par la déesse Namagiri dans ses rêves. Il mourut à 32 ans, de malnutrition. Son taxi préféré était le 1729.",o:"Ce nombre rêve. Il entend des voix que les autres n'entendent pas."},
+{name:"Georg Cantor",y:"1845-1918",t:"infini et folie",b:"Il inventa les infinis, les alephs. Son mentor Kronecker le traquait : « Cantor est un corrompu de l'infini. » Cantor finit en hôpital psychiatrique. Il mourut seul.",o:"Ce nombre est fou. La folie, c'est l'infini regardant un cerveau fini."},
+{name:"Ada Lovelace",y:"1815-1852",t:"poésie calculante",b:"Fille de Lord Byron, elle traduisit Babbage, ajouta la Note G — le premier algorithme conçu pour une machine. Elle fumait de l'opium et rêvait d'ordinateurs musiciens.",o:"Ce nombre est le fils d'un poète. Il calcule, mais il rêve en vers."},
+{name:"Émilie du Châtelet",y:"1706-1749",t:"traduction en urgence",b:"Elle traduisit Newton en français pendant qu'elle était enceinte de son troisième enfant. Elle accoucha et mourut dans la semaine. Voltaire : « Elle était un grand homme. »",o:"Ce nombre traduit l'univers en urgence. Il sait que le temps est compté."},
+{name:"Alan Turing",y:"1912-1954",t:"pomme empoisonnée",b:"Il déchiffra Enigma, sauva des millions de vies. Le gouvernement le castra chimiquement pour homosexualité. Il trouva la mort avec une pomme empoisonnée au cyanure. Apple niera toujours le lien.",o:"Ce nombre mord la pomme. Le savoir, c'est le poison."},
+{name:"Grigori Perelman",y:"1966-",t:"ermite",b:"Il résolut la Conjecture de Poincaré, posta la preuve sur arXiv, refusa la médaille Fields, refusa le million de dollars. Il vit avec sa mère à Saint-Pétersbourg dans un appartement délabré.",o:"Ce nombre n'a pas besoin de prix. Il a déjà gagné contre le monde."},
+{name:"Maryam Mirzakhani",y:"1977-2017",t:"surfaces et napkins",b:"Première femme médaille Fields (2014). Iranienne. Elle mourut à 40 ans d'un cancer. Ses filles trouvaient des formules géométriques sur les napkins de la cuisine.",o:"Ce nombre dessine sur les napkins de la vie. Le cancer ne gagne pas la beauté."},
+{name:"Pierre de Fermat",y:"1607-1665",t:"marge trop étroite",b:"Juge de paix à Toulouse. « J'ai découvert une merveilleuse démonstration, mais cette marge est trop étroite. » Il mourut sans révéler la preuve. Wiles a mis 358 ans à la retrouver.",o:"Ce nombre a une preuve qu'il ne montrera jamais. Le secret est plus fort que la vérité."},
+{name:"René Descartes",y:"1596-1650",t:"crâne vendu",b:"Il inventa les coordonnées dans un poêle en Allemagne. La reine Christine le fit lever à 5h du matin pour des leçons. Il mourut de pneumonie. On dit que son crâne fut vendu séparément.",o:"Ce nombre pense donc il est. Mais il meurt de froid quand même."},
+{name:"Sofia Kovalevskaya",y:"1850-1891",t:"mari blanc",b:"Elle dut contracter un mari blanc pour quitter la Russie. Première femme professeure d'Europe. Elle mourut en rentrant d'un voyage. Son dernier mot : « Trop de bonheur. »",o:"Ce nombre voyage avec un faux mari. Le faux mari ouvre la vraie porte."},
+{name:"John Nash",y:"1928-2015",t:"délires et Nobel",b:"Il voyait des agents partout. Prix Nobel d'Économie en 1994 pour un article de 27 pages à 21 ans. Il se rétablit sans médicaments. Il mourut avec sa femme dans un accident de taxi.",o:"Ce nombre voit des conspirations. Parfois, les conspirations sont réelles."},
+{name:"Paul Erdős",y:"1913-1996",t:"sans domicile fixe",b:"Pas de maison, pas de voiture, pas de travail fixe. Il voyageait avec une valise d'amphétamines et de papiers. Il mourut à un congrès, en pleine résolution d'un problème.",o:"Ce nombre n'a pas de domicile. Il est chez lui partout où il y a une équation."},
+{name:"Henri Poincaré",y:"1854-1912",t:"chute d'une chaise",b:"Il tomba d'une chaise à 5 ans et devint amblyope. On le crut idiot. Il inventa la topologie et posa les bases de la relativité. Il écrivait 500 pages par an.",o:"Ce nombre tombe d'une chaise. La chute lui donne des ailes."},
+{name:"Emmy Noether",y:"1882-1935",t:"symétrie exilée",b:"Elle prouva que la conservation de l'énergie découle de la symétrie temporelle. Hitler chassa les juifs ; elle partit aux USA. Elle mourut d'une opération banale. Einstein écrivit son éloge.",o:"Ce nombre est une symétrie cachée. On le chasse, il conserve l'énergie ailleurs."},
+{name:"Alexander Grothendieck",y:"1928-2014",t:"brûleur de manuscrits",b:"Il réécriva la géométrie algébrique. Il disparut dans les Pyrénées, vivant de lait et de racines. Il brûla 30 000 pages de manuscrits. Il croyait que le diable s'infiltrait via la bombe atomique.",o:"Ce nombre brûle ses propres manuscrits. Il sait que certaines vérités doivent disparaître."},
+{name:"Carl Friedrich Gauss",y:"1777-1855",t:"enfant calculateur",b:"À 10 ans, il calcula 1+2+...+100 en une minute. Il tenait un journal secret. On dit qu'il n'a jamais rien expliqué à personne.",o:"Ce nombre calcule vite. Il garde le reste pour lui."},
+{name:"Maria Gaetana Agnesi",y:"1718-1799",t:"sorcière enfermée",b:"Elle parlait 7 langues à 11 ans. Elle traduisit Newton et inventa la courbe de la sorcière. Elle renonça aux maths, entra au couvent, et mourut oubliée.",o:"Ce nombre est une sorcière. On l'oblige à parler, puis on l'enferme."},
+{name:"Euclide",y:"vers -300",t:"trois oboles",b:"« Que gagnerai-je à apprendre la géométrie ? » — « Donne-lui trois oboles. » Il n'a jamais eu de roi. Il a eu des axiomes.",o:"Ce nombre n'a pas de roi. Il a des axiomes, et ça suffit."},
+{name:"Archimède",y:"vers -287--212",t:"cercles dans le sable",b:"Un soldat romain entra chez lui à Syracuse. Archimède dessinait des cercles dans le sable : « Ne trouble pas mes cercles. » Le soldat le tua.",o:"Ce nombre dessine dans le sable. Le soldat ne comprend pas."},
+{name:"Blaise Pascal",y:"1623-1662",t:"vision cousue",b:"Machine à calculer à 19 ans, probabilités avec Fermat, géométrie projective. Vision mystique en 1654. Il cacha le papier dans sa doublure jusqu'à sa mort.",o:"Ce nombre a eu une vision dans la nuit. Il a cousu la vision dans sa veste."},
+{name:"Fibonacci",y:"vers 1170-1250",t:"couple de lapins",b:"Il ramena le zéro en Europe. Problème des lapins : un couple dans un lieu clos. L'Europe ne s'en est jamais remise.",o:"Ce nombre est un couple de lapins. Il se multiplie dans le silence."},
+{name:"Niccolò Tartaglia",y:"1499-1557",t:"crâne fendu",b:"On lui fendit le crâne d'un coup de sabre. Il bégaya toute sa vie. Cardan lui vola la formule du troisième degré. Il mourut dans la pauvreté.",o:"Ce nombre a le crâne fendu. On lui vole la formule, il garde la cicatrice."},
+{name:"Niels Henrik Abel",y:"1802-1829",t:"deux jours trop tôt",b:"Il prouva l'impossibilité de résoudre le cinquième degré. Cauchy égarla son manuscrit. Il mourut à 26 ans, deux jours avant une lettre lui offrant un poste à Berlin.",o:"Ce nombre meurt deux jours trop tôt. La lettre arrive après."},
+{name:"Julia Robinson",y:"1919-1985",t:"vomisseur de vérité",b:"Elle résolut le 10ème problème de Hilbert après 20 ans de travail solitaire. Elle vomissait avant les conférences. Elle refusa d'être photographiée.",o:"Ce nombre vomit avant de parler. Il a raison d'avoir peur."},
+{name:"Yitang Zhang",y:"1955-",t:"sandwichs et primes",b:"Inconnu jusqu'à 50 ans, il travaillait dans un Subway. En 2013, il prouva qu'il existe une infinité de paires de premiers séparés par au plus 70 millions.",o:"Ce nombre fait des sandwichs jusqu'à 50 ans. Puis il change le monde."},
+{name:"G.H. Hardy",y:"1877-1947",t:"inutilité fière",b:"Il détestait les applications pratiques. Il adorait le cricket. Il mourut en essayant de se suicider par overdose de barbituriques.",o:"Ce nombre est inutile. C'est son plus grand orgueil."},
+{name:"Marjorie Rice",y:"1923-2017",t:"mère au foyer pavage",b:"Mère de cinq enfants, sans diplôme. À 50 ans, elle découvrit de nouveaux pavages pentagonaux. Les pros furent humiliés et fascinés.",o:"Ce nombre est une mère au foyer. Elle pavage l'infini entre deux lessives."},
+{name:"Diophante",y:"vers 200-284",t:"tombeau calculé",b:"Le père de l'algèbre. Son tombeau porte une énigme sur les fractions de sa vie. Il mourut sans savoir qu'on le résoudrait pendant 1 700 ans.",o:"Ce nombre est une énigme gravée sur une pierre. On le résout après sa mort."},
+{name:"Al-Khwarizmi",y:"vers 780-850",t:"père de l'algorithme",b:"Son nom donna « algorithme ». Il importa les chiffres arabes en Occident. Il mourut sans savoir qu'il avait nommé le monde numérique.",o:"Ce nombre est un mot. Le mot devient le monde."},
+{name:"Omar Khayyam",y:"1048-1131",t:"poète et calendrier",b:"Il réforma le calendrier perse avec une précision de un jour sur 5 000 ans. L'Occident ne retint que ses vers sur le vin et la rose.",o:"Ce nombre calcule le temps. Le temps boit du vin et oublie."},
+{name:"Liu Hui",y:"vers 220-280",t:"polygones de pi",b:"Il calcula π avec des polygones de 3 072 côtés. Il refusa de devenir fonctionnaire impérial. Ses méthodes survécurent aux dynasties.",o:"Ce nombre dessine des polygones dans un cercle. Le cercle reste parfait."},
+{name:"Brahmagupta",y:"598-668",t:"règles du zéro",b:"Il établit les règles du zéro. Il calcula la racine carrée de nombres négatifs. Il mourut en regardant les étoiles qu'il avait calculées.",o:"Ce nombre divise le néant par le néant. Il trouve quelque chose."},
+{name:"Bhaskara II",y:"1114-1185",t:"fils astronome",b:"Il dirigea l'observatoire d'Ujjain. Il nomma sa fille Lilavati et lui dédia un livre de maths sous forme de poèmes d'amour.",o:"Ce nombre dédie un livre à sa fille. Les équations sont des poèmes."},
+{name:"Madhava de Sangamagrama",y:"vers 1340-1425",t:"série du Kerala",b:"Il inventa le calcul infinitésimal 200 ans avant Newton. L'Europe ne sut jamais qu'elle avait été devancée.",o:"Ce nombre est un moine. Il calcule π dans un temple oublié."},
+{name:"Jacques Bernoulli",y:"1654-1705",t:"tombe en spirale",b:"Il demanda une spirale logarithmique sur sa tombe : « Même changé, je renais le même. » On dessina une spirale d'Archimède à la place.",o:"Ce nombre renaît identique. On lui donne la mauvaise tombe."},
+{name:"Jean Bernoulli",y:"1667-1748",t:"vendeur d'âme",b:"Il résolut la brachistochrone en une nuit. Il vendit son âme à Leibniz. Il se battit avec son fils pour le prix de l'Académie.",o:"Ce nombre vend son âme pour une équation. L'équation est meilleure marché."},
+{name:"Leonhard Euler",y:"1707-1783",t:"aveugle et prolixe",b:"Il perdit la vue à 28 ans puis à 59 ans. 800 livres, 13 enfants. Il mourut en calculant l'orbite d'Uranus.",o:"Ce nombre est aveugle. Il voit mieux que ceux qui ont des yeux."},
+{name:"Joseph-Louis Lagrange",y:"1736-1813",t:"Mécanique Analytique",b:"Né pauvre à Turin. Il écrivit la Mécanique Analytique sans aucun dessin. Napoléon le fit comte. Il mourut seul, mais honoré.",o:"Ce nombre écrit sans dessiner. Les mots suffisent à mouvoir le monde."},
+{name:"Pierre-Simon Laplace",y:"1749-1827",t:"hypothèse inutile",b:"« Où est Dieu ? » — « Sire, je n'ai pas besoin de cette hypothèse. » Il mourut le jour de sa transformation en marquis.",o:"Ce nombre n'a pas besoin de Dieu. Il a des probabilités."},
+{name:"Joseph Fourier",y:"1768-1830",t:"effet de serre",b:"Il découvrit que toute fonction est une somme de sinus. Il inventa l'effet de serre. Il mourut d'une maladie contractée en Égypte.",o:"Ce nombre emprisonne la chaleur. Le monde réchauffe sous ses séries."},
+{name:"Jean le Rond d'Alembert",y:"1717-1783",t:"enfant des marches",b:"Abandonné sur les marches de Saint-Jean-le-Rond. Il co-écrivit l'Encyclopédie. Il mourut sans descendance.",o:"Ce nombre est abandonné sur des marches. Les marches mènent à l'encyclopédie."},
+{name:"Gaspard Monge",y:"1746-1818",t:"dessinateur de prison",b:"Il inventa la géométrie descriptive sur les murs de sa prison. Il fonda Polytechnique. Ses dessins muraux furent détruits.",o:"Ce nombre dessine sur les murs de sa prison. Les murs deviennent une école."},
+{name:"Augustin-Louis Cauchy",y:"1789-1857",t:"7000 pages",b:"Royaliste fanatique. 7000 pages, analyse rigoureuse, étudiants terrorisés. Il mourut seul, victime de son intransigeance.",o:"Ce nombre est rigoureux. La rigueur tue les amis."},
+{name:"Siméon Denis Poisson",y:"1781-1840",t:"loi des hasards",b:"Trop maladroit pour la chirurgie, il devint mathématicien. Loi des événements rares. Il mourut en disant : « La vie est bonne pour très peu de chose. »",o:"Ce nombre compte les événements rares. Les rares finissent par arriver."},
+{name:"Peter Lejeune Dirichlet",y:"1805-1859",t:"mendelssohn",b:"Il épousa Rebecka Mendelssohn. Il prouva une infinité de premiers en progression arithmétique. Ses notes furent brûlées par sa femme.",o:"Ce nombre épouse la musique. La musique brûle ses notes."},
+{name:"Bernhard Riemann",y:"1826-1866",t:"timide et tuberculeux",b:"Il tremblait devant Gauss. Il posa l'hypothèse du millénaire. Il mourut à 39 ans. Ses papiers contenaient une preuve presque trouvée.",o:"Ce nombre tremble devant son maître. Le maître ne comprend pas."},
+{name:"Karl Weierstrass",y:"1815-1897",t:"professeur de gymnase",b:"Il enseignait en province jusqu'à 39 ans. Il inventa le monstre : continu mais nulle part dérivable. Le père de l'analyse moderne.",o:"Ce nombre est un monstre continu. Nulle part, il ne dérive."},
+{name:"Richard Dedekind",y:"1831-1916",t:"coupure de saucisse",b:"Il eut l'idée de la coupure en regardant un cours. Il coupa mentalement une saucisse à l'infini. Il mourut après avoir fêté son anniversaire.",o:"Ce nombre coupe une saucisse à l'infini. La saucisse devient réelle."},
+{name:"Leopold Kronecker",y:"1823-1891",t:"persécuteur de Cantor",b:"« Dieu a créé les entiers. » Il traqua Cantor jusqu'à la folie. Riche banquier devenu mathématicien. Son tombeau est modeste.",o:"Ce nombre persécute l'infini. L'infini se venge dans les hôpitaux."},
+{name:"James Sylvester",y:"1814-1897",t:"juif exclu",b:"Exclu d'Oxford et Cambridge. Il inventa le mot « matrice ». Il mourut à 83 ans, ayant vu l'Angleterre ouvrir ses universités.",o:"Ce nombre est exclu. L'exclusion forge la matrice."},
+{name:"Arthur Cayley",y:"1821-1895",t:"avocat matinal",b:"Avocat le matin, mathématicien l'après-midi pendant 14 ans. Il inventa les graphes et les espaces à n dimensions.",o:"Ce nombre est avocat le matin et géomètre l'après-midi. Les deux sont des arbres."},
+{name:"Charles Hermite",y:"1822-1901",t:"détesteur de déterminants",b:"Échoua 5 fois à Polytechnique. Il prouva la transcendance de e. Il détestait les déterminants : « C'est de la sale besogne. »",o:"Ce nombre échoue cinq fois. La sixième fois, il transcende."},
+{name:"Felix Klein",y:"1849-1925",t:"bouteille et dépression",b:"Il inventa la bouteille sans intérieur ni extérieur. Dépression nerveuse à 33 ans. Il mourut en regardant un modèle de surface.",o:"Ce nombre n'a pas d'intérieur. Il n'a pas d'extérieur non plus."},
+{name:"David Hilbert",y:"1862-1943",t:"23 problèmes",b:"23 problèmes à Paris en 1900. « Nous devons savoir, nous saurons. » Il vit la destruction de Göttingen par les nazis. Il mourut seul.",o:"Ce nombre pose 23 questions. Les questions survivent aux réponses."},
+{name:"Hermann Minkowski",y:"1864-1909",t:"espace-temps",b:"Professeur d'Einstein. Il unifia l'espace et le temps. Einstein ne comprit pas tout de suite. Minkowski mourut d'une appendicite à 44 ans.",o:"Ce nombre est un espace-temps. L'appendicite le raccourcit."},
+{name:"Mikhaïl Gromov",y:"1943-",t:"hamburger métrique",b:"Il révolutionna la géométrie. Il mangeait des hamburgers en conférence. Prix Abel. Il refuse les interviews.",o:"Ce nombre mange un hamburger. Le hamburger est une métrique."},
+{name:"Andrew Wiles",y:"1953-",t:"grenier et Fermat",b:"7 ans dans son grenier. Il prouva Fermat en 1994. Une erreur fut trouvée. Il la corrigea en un an. Il pleura après la dernière page.",o:"Ce nombre pleure dans un grenier. Le grenier contient la preuve du monde."},
+{name:"Terence Tao",y:"1975-",t:"mozart des maths",b:"Calcul à 7 ans, prof à 24 ans. Le Mozart des mathématiques. Il joue au tennis de table. Les maths sont une jungle infinie.",o:"Ce nombre est un Mozart. Il joue dans la jungle infinie."},
+{name:"Alain Connes",y:"1947-",t:"géométrie non commutative",b:"Médaille Fields 1982. Philosophe de l'abstrait, claveciniste. Il dit que les premiers sont des notes de musique.",o:"Ce nombre joue du clavecin. Les premiers sont des notes noires."},
+{name:"Jean-Pierre Serre",y:"1926-",t:"plus jeune Fields",b:"Fields à 27 ans, le plus jeune. Il n'aime pas les applications. Le plus cité des mathématiciens vivants.",o:"Ce nombre est jeune et cité. Il n'aime pas les applications."},
+{name:"Pierre Deligne",y:"1944-",t:"conjectures et mystique",b:"Il prouva les conjectures de Weil à 34 ans. Belge, discret, exact. Prix Abel 2013.",o:"Ce nombre est belge et exact. L'exactitude est une forme de silence."},
+{name:"Nicolas Bourbaki",y:"1935-?",t:"fantôme collectif",b:"Il n'existe pas. Collectif français. Enterrement fictif. Ils inventèrent le symbole ∅. Ils sont morts plusieurs fois.",o:"Ce nombre n'existe pas. Il a quand même un enterrement."},
+{name:"Claude Shannon",y:"1916-2001",t:"jongleur d'informations",b:"Il inventa le bit en 1948. Jongleur sur monocycle au Bell Labs. Il mourut d'Alzheimer, ayant oublié ses propres théorèmes.",o:"Ce nombre jongle. Le jonglage est une forme d'information."},
+{name:"John von Neumann",y:"1903-1957",t:"ordinateur et bombe",b:"Architecture des ordinateurs, bombe H, théorie des jeux. Il mourut à 53 ans d'un cancer, probablement des radiations.",o:"Ce nombre convertit sur son lit de mort. La conversion est un calcul."},
+{name:"Norbert Wiener",y:"1894-1964",t:"cybernétique errante",b:"Il inventa la cybernétique. Myope, il errait au MIT en parlant seul. Autobiographie : « Ex-Prodige ».",o:"Ce nombre erre. L'errance est une forme de contrôle."},
+{name:"Andrey Kolmogorov",y:"1903-1987",t:"poète des probabilités",b:"Il axiomatisa les probabilités en 1933. « Tout mathématicien est un poète du cœur. » Il mourut entouré de ses chiens.",o:"Ce nombre est un poète. Le hasard est sa métrique."},
+{name:"Andrey Markov",y:"1856-1922",t:"chaînes et rébellion",b:"Il inventa les chaînes. Excommunié pour avoir refusé de pardonner. Son fils fut arrêté par les bolcheviks.",o:"Ce nombre refuse de pardonner. La chaîne continue sans pardon."},
+{name:"Pafnuty Chebyshev",y:"1821-1894",t:"béquilles mécaniques",b:"Il marchait avec des béquilles. Il inventa des mécanismes, des inégalités, et fonda l'école russe. Il mourut en travaillant sur les premiers.",o:"Ce nombre boite. La boiterie est une mécanique supérieure."},
+{name:"Aleksandr Lyapunov",y:"1857-1918",t:"saut de fenêtre",b:"Le jour de l'anniversaire de sa femme morte, il sauta par la fenêtre à Odessa. Survécut 3 jours. Lettre inachevée sur la stabilité de l'âme.",o:"Ce nombre saute par la fenêtre. La chute est stable."},
+{name:"Lev Pontryagin",y:"1908-1988",t:"aveugle et mère",b:"Aveugle à 14 ans. Sa mère lui lut tous les livres. Il inventa la topologie algébrique. Sa mère mourut avant lui.",o:"Ce nombre est aveugle. Sa mère lui lit l'univers."},
+{name:"Vladimir Arnold",y:"1937-2010",t:"physique bon marché",b:"Théorème KAM. « Les maths sont la partie de la physique où les expériences sont bon marché. » Exclu pour avoir soutenu un dissident.",o:"Ce nombre fait des expériences bon marché. La rébellion est gratuite."},
+{name:"Sergei Novikov",y:"1938-",t:"soliton et dissidence",b:"Fields 1970. Découvrit les solitons. Dissident soviétique. Il enseigne encore à Moscou.",o:"Ce nombre est un soliton. Il ne se dissipe pas sous la dictature."},
+{name:"Grigory Margulis",y:"1946-",t:"émigré silencieux",b:"Fields 1978. Les Soviétiques lui refusèrent de sortir. Il émigra en 1991. Taciturne, vit à Yale.",o:"Ce nombre émigre. L'émigration est une preuve."},
+{name:"Efim Zelmanov",y:"1955-",t:"Burnside restreinte",b:"Fields 1994. Sibérien, refusé à cause de ses origines juives. Les problèmes difficiles sont des montagnes sibériennes.",o:"Ce nombre est sibérien. La Sibérie résout ce que Moscou ne peut pas."},
+{name:"Israel Gelfand",y:"1913-2009",t:"séminaire éternel",b:"Séminaire de Moscou pendant 50 ans. « Mon premier cours était sur les nombres premiers. » Il dessinait sur les serviettes en papier.",o:"Ce nombre est un séminaire. Le séminaire dure 50 ans."},
+{name:"Yuri Manin",y:"1937-2023",t:"sculpteur de l'abstrait",b:"« Le mathématicien est un sculpteur de l'abstrait. » Il mourut en 2023, laissant des notes sur le langage mathématique.",o:"Ce nombre sculpte l'abstrait. L'abstrait est plus dur que le marbre."},
+{name:"Vladimir Drinfeld",y:"1954-",t:"quantique ukrainien",b:"Fields 1990. Né en Ukraine, plus jeune professeur soviétique. Silencieux, modeste, vit à Chicago.",o:"Ce nombre est ukrainien. L'Ukraine quantifie le monde."},
+{name:"Maxim Kontsevich",y:"1964-",t:"miroir symétrique",b:"Fields 1998. Symétrie miroir. Il collectionne les insectes. Les espaces infiniment petits sont plus grands que les grands.",o:"Ce nombre est un miroir. Le miroir reflète l'infini."},
+{name:"Andrei Okounkov",y:"1969-",t:"probas et physique",b:"Fields 2006. « La beauté est la seule règle qui compte. » Il joue du piano. Il résout des problèmes en regardant la neige.",o:"Ce nombre regarde la neige. La neige est une combinatoire."},
+{name:"Vladimir Voevodsky",y:"1966-2017",t:"homotopie et noyade",b:"Fields 2002. Il voulut tout vérifier par ordinateur. Il se noya en 2017. Son ordinateur survécut.",o:"Ce nombre se noie. L'ordinateur survit."},
+{name:"Peter Scholze",y:"1987-",t:"perfectoïdes",b:"Fields 2018. Plus jeune professeur allemand. Les maths sont un jeu vidéo où chaque niveau est plus dur.",o:"Ce nombre est un perfectoïde. Le perfectoïde est un jeu vidéo."},
+{name:"Manjul Bhargava",y:"1974-",t:"tabla et composition",b:"Fields 2014. Il joue de la tabla. Les maths sont comme la musique indienne : des rythmes infinis.",o:"Ce nombre joue de la tabla. La tabla compose des formes."},
+{name:"Akshay Venkatesh",y:"1981-",t:"automorphisme australien",b:"Fields 2018. Entré à l'université à 13 ans. « Je pensais être physicien. » Il voit des connexions invisibles.",o:"Ce nombre pense être physicien. La physique est un nombre."},
+{name:"Caucher Birkar",y:"1978-",t:"fuite kurde",b:"Fields 2018. Réfugié kurde, traversa la Turquie à pied. On lui vola la médaille 48h après. Retrouvée dans une poubelle.",o:"Ce nombre est volé. On le retrouve dans une poubelle."},
+{name:"Alessio Figalli",y:"1984-",t:"transport optimal",b:"Fields 2018. Footballeur amateur avant les maths. « Je ne savais pas ce que c'était, le Fields. »",o:"Ce nombre joue au football. Le ballon suit le chemin optimal."},
+{name:"Martin Hairer",y:"1975-",t:"EDP stochastiques",b:"Fields 2014. « J'ai résolu une équation que personne ne comprenait. » Marié à une mathématicienne chinoise.",o:"Ce nombre est stochastique. Le hasard devient régulier."},
+{name:"Artur Avila",y:"1979-",t:"surf et chaos",b:"Fields 2014. Brésilien, il surfe. Premier Fields d'Amérique latine. « Je travaille quand je veux. »",o:"Ce nombre surfe. Le surf est un système dynamique."},
+{name:"Stanislav Smirnov",y:"1970-",t:"percolation suisse",b:"Fields 2010. « Les maths sont un sport. » Ski de fond. L'eau traverse le café selon des lois universales.",o:"Ce nombre est un sportif. Le sport percole."},
+{name:"Wendelin Werner",y:"1968-",t:"probas françaises",b:"Fields 2006. « Je ne sais pas pourquoi j'ai eu la médaille. » Fils d'un théologien protestant.",o:"Ce nombre ne sait pas pourquoi. Le pourquoi est une médaille."},
+{name:"Cédric Villani",y:"1973-",t:"nœud papillon et député",b:"Fields 2010. Nœud papillon en araignée. Député, évincé pour avoir trop parlé. Best-seller « Théorème vivant ».",o:"Ce nombre est un député. Le député porte un nœud papillon."},
+{name:"Pierre-Louis Lions",y:"1956-",t:"lion des EDP",b:"Fields 1994. Fils et petit-fils de mathématiciens. Le lion des maths. Les EDP sont belles et dangereuses.",o:"Ce nombre est un lion. Le lion dérive partiellement."},
+{name:"Yves Meyer",y:"1939-",t:"ondelettes par erreur",b:"Prix Abel 2017. Il découvrit les ondelettes par erreur. Il travaille encore chaque matin à 80 ans.",o:"Ce nombre découvre par erreur. L'erreur est une onde."},
+{name:"Yuri Matiyasevich",y:"1947-",t:"Hilbert détruit",b:"À 22 ans, il prouva que le 10ème problème de Hilbert était indécidable. Sans ordinateur, avec une machine de Turing imaginaire.",o:"Ce nombre détruit Hilbert à 22 ans. La destruction est une preuve."},
+{name:"Chudnovsky Brothers",y:"1947- / 1952-",t:"superordinateur domestique",b:"Ils construisirent un superordinateur dans leur appartement de New York pour calculer π. Leur machine chauffait tellement qu'ils ouvraient les fenêtres en hiver.",o:"Ce nombre est deux frères. Les frères calculent π dans le salon."},
+{name:"Paul Cohen",y:"1934-2007",t:"forcing et continu",b:"Il inventa le forcing. « Je suis le seul à comprendre le forcing. » Il mourut ayant cessé de publier depuis 20 ans.",o:"Ce nombre force le continu. Le continu cède."},
+{name:"Kurt Gödel",y:"1906-1978",t:"faim et paranoïa",b:"Il prouva l'incomplétude. Il refusa de manger de peur d'être empoisonné. Il mourut de faim à 65 ans, pesant 30 kg. Einstein l'accompagnait.",o:"Ce nombre meurt de faim. La faim est une forme de preuve."},
+{name:"Alfred Tarski",y:"1901-1983",t:"vérité en exil",b:"« La neige est blanche » est vraie ssi la neige est blanche. Polonais, juif, exilé aux USA. Grand, beau, infidèle.",o:"Ce nombre définit la vérité. La vérité est blanche comme la neige."},
+{name:"Stefan Banach",y:"1892-1945",t:"café et crâne",b:"Il inventa l'analyse fonctionnelle dans les cafés de Lwów. Il payait les solutions en café. On dit que son crâne servit de modèle anatomique.",o:"Ce nombre paie en café. Le café est un théorème."},
+{name:"Stanislaw Ulam",y:"1909-1984",t:"bombe H et Monte Carlo",b:"Il inventa Monte Carlo et conçut la bombe H. Il eut une crise cardiaque en regardant un film. Il mourut à Santa Fe.",o:"Ce nombre joue au poker. Le poker est une bombe."},
+{name:"Benoît Mandelbrot",y:"1924-2010",t:"père des fractales",b:"Il inventa le mot fractale. « Je suis un géomètre hasardeux. » Juif, polonais, français, américain. Il mourut en dessinant.",o:"Ce nombre est hasardeux. Le hasard a une forme infinie."},
+{name:"Mitchell Feigenbaum",y:"1944-2019",t:"4.669...",b:"Il découvrit la constante du chaos, 4.669..., sur une HP-65 dans les toilettes de Los Alamos. Il refusa la gloire.",o:"Ce nombre est 4.669... La constante du chaos est universelle."},
+{name:"Edward Lorenz",y:"1917-2008",t:"battement d'ailes",b:"« Le battement d'ailes d'un papillon au Brésil déclenche-t-il une tornade au Texas ? » Ordinateur à lampes. Il mourut à 90 ans en regardant le ciel.",o:"Ce nombre est un papillon. L'aile bat et le monde change."},
+{name:"René Thom",y:"1923-2002",t:"catastrophe et silence",b:"Théorie des catastrophes. « La mathématique est une régression vers le silence. » Il mourut à Bures-sur-Yvette, en silence.",o:"Ce nombre est une catastrophe. La catastrophe est silencieuse."},
+{name:"Stephen Smale",y:"1930-",t:"sphère éversée et Vietnam",b:"Fields 1966. Il éversa la sphère. Il protesta contre la guerre du Vietnam. On lui retira ses financements. Il vit à Hong Kong.",o:"Ce nombre éverse la sphère. L'éversion est une protestation."},
+{name:"Heisuke Hironaka",y:"1931-",t:"singularités résolues",b:"Fields 1970. Premier Asiatique médaillé. Il résolut les singularités. Il est centenaire en 2031.",o:"Ce nombre résout les singularités. La singularité devient lisse."},
+{name:"Louis Nirenberg",y:"1925-2020",t:"problème de la semaine",b:"« Problème de la semaine » au tableau noir de Courant. Canadien, juif, blagueur. Il mourut, le tableau noir encore plein.",o:"Ce nombre pose un problème par semaine. La semaine est courte."},
+{name:"Ennio de Giorgi",y:"1928-1996",t:"miracle de la régularité",b:"« Le miracle de de Giorgi. » Religieux, membre de Communion et Libération. Il mourut à Pise, en priant.",o:"Ce nombre est un miracle. Le miracle est régulier."},
+{name:"Simon Donaldson",y:"1957-",t:"dimension 4",b:"Fields 1986. La dimension 4 est spéciale, incompréhensible, riche. Une porte dérobée vers l'infini.",o:"Ce nombre est la dimension 4. La dimension 4 est une porte dérobée."},
+{name:"Edward Witten",y:"1951-",t:"physicien Fields",b:"Fields 1990. Physicien. Théorie des cordes, supersymétrie. Le plus grand physicien depuis Einstein. Timide.",o:"Ce nombre est physicien. Le physicien reçoit la médaille des mathématiciens."},
+{name:"Michael Atiyah",y:"1929-2019",t:"index et poésie",b:"Fields 1966, Abel 2004. « Les maths et la poésie sont la même chose. » Fausse preuve de Riemann à 89 ans. Mort à Édimbourg.",o:"Ce nombre est un poème. Le poème prouve l'indice."}
+];
+
+const FAM = {
+  premier:{l:"Premier",c:"#C9A227"}, germain:{l:"Sophie Germain",c:"#27AE60"},
+  mersenne:{l:"Mersenne",c:"#E74C3C"}, fermat:{l:"Fermat",c:"#9B59B6"},
+  heegner:{l:"Heegner",c:"#1ABC9C"}, palindrome:{l:"Palindrome",c:"#FF69B4"},
+  safe:{l:"Safe",c:"#5DADE2"}, jumeau:{l:"Jumeau",c:"#F1C40F"},
+  taxicab:{l:"Taxicab",c:"#FF8C00"}, carre:{l:"Carré",c:"#00FFFF"},
+  cube:{l:"Cube",c:"#FF00FF"}, fibonacci:{l:"Fibonacci",c:"#E67E22"},
+  parfait:{l:"Parfait",c:"#E8E8E8"}, catalan:{l:"Catalan",c:"#8E44AD"},
+  cullen:{l:"Cullen",c:"#2ECC71"}, woodall:{l:"Woodall",c:"#E91E63"},
+  narcissique:{l:"Narcissique",c:"#FF5722"}, chanceux:{l:"Chanceux",c:"#00BCD4"},
+  lucas:{l:"Lucas",c:"#FFC107"}, repunit:{l:"Repunit",c:"#795548"},
+  composite:{l:"Composite",c:"#666666"}
+};
+
+const HEEG=[1,2,3,7,11,19,43,67,163], TAXI=[1729,4104,13832,20683,32832,39312];
+const PARF=[6,28,496,8128,33550336,8589869056,137438691328,2305843008139952128];
+const FERMAT=[3,5,17,257,65537];
+
+function isPrime(n){if(n<2)return false;if(n%2===0)return n===2;for(let i=3;i*i<=n;i+=2)if(n%i===0)return false;return true;}
+function isPal(n){const s=String(n);return s===s.split('').reverse().join('');}
+function isSq(n){const r=Math.floor(Math.sqrt(n));return r*r===n;}
+function isCu(n){const r=Math.round(Math.pow(n,1/3));return r*r*r===n||(r+1)*(r+1)*(r+1)===n||(r-1)*(r-1)*(r-1)===n;}
+function isFib(n){if(n<0)return false;const x=5*n*n;return isSq(x+4)||isSq(x-4);}
+function isPow2(n){return n>0&&(n&(n-1))===0;}
+function isMerForm(n){if(n<3)return false;return isPow2(n+1);}
+function isRep(n){const s=String(n);return/^1+$/.test(s)&&s.length>1;}
+function isNar(n){const s=String(n),k=s.length;let sum=0;for(const c of s)sum+=Math.pow(parseInt(c),k);return sum===n&&n>9;}
+function isLuc(n){if(n===2||n===1)return true;let a=2,b=1;while(b<n){[a,b]=[b,a+b];}return b===n;}
+function isCul(n){for(let k=1;k<30;k++){const c=k*Math.pow(2,k)+1;if(c===n)return true;if(c>n)break;}return false;}
+function isWoo(n){for(let k=1;k<30;k++){const w=k*Math.pow(2,k)-1;if(w===n)return true;if(w>n)break;}return false;}
+
+function detect(n){
+  const tags=[], add=k=>tags.push({...FAM[k],k});
+  if(isPal(n))add("palindrome");
+  if(HEEG.includes(n))add("heegner");
+  if(TAXI.includes(n))add("taxicab");
+  if(PARF.includes(n))add("parfait");
+  if(isSq(n))add("carre");
+  if(isCu(n))add("cube");
+  if(isFib(n))add("fibonacci");
+  if(isLuc(n))add("lucas");
+  if(isRep(n))add("repunit");
+  if(isNar(n))add("narcissique");
+  if(isCul(n))add("cullen");
+  if(isWoo(n))add("woodall");
+  const p=isPrime(n);
+  if(p){
+    add("premier");
+    if(isPrime(2*n+1))add("germain");
+    if(isPrime((n-1)/2))add("safe");
+    if(isPrime(n+2)||isPrime(n-2))add("jumeau");
+    if(isMerForm(n))add("mersenne");
+    if(FERMAT.includes(n))add("fermat");
+  } else if(n>1) add("composite");
+  return tags;
+}
+
+function consult(){
+  const err=document.getElementById('err');
+  err.textContent='';
+  try{
+    const raw=document.getElementById('numInput').value.trim();
+    if(!raw)return;
+    const n=parseInt(raw,10);
+    if(isNaN(n)||n<1){err.textContent="Entrez un entier positif.";return;}
+    if(n>MAX){err.textContent="L'Oracle se fatigue au-delà de 7 733 377.";return;}
+    const tags=detect(n);
+    const soul=souls[Math.floor(Math.random()*souls.length)];
+    const mainColor=tags.length>0?tags[0].c:"#00FF41";
+    const big=document.getElementById('bigNum');
+    big.textContent=n;big.style.color=mainColor;
+    const tz=document.getElementById('tags');tz.innerHTML='';
+    tags.forEach(t=>{
+      const s=document.createElement('span');s.className='tag';
+      s.style.color=t.c;s.style.borderColor=t.c;s.textContent=t.l;tz.appendChild(s);
+    });
+    document.getElementById('bioName').textContent=soul.name;
+    document.getElementById('bioYears').textContent=soul.y+" — "+soul.t;
+    document.getElementById('bioText').textContent=soul.b;
+    document.getElementById('bioOracle').textContent="« "+soul.o+" »";
+    document.getElementById('res').classList.add('show');
+  }catch(e){
+    err.textContent="Erreur : "+e.message;
+    console.error(e);
+  }
+}
+
+document.getElementById('btnOracle').addEventListener('click',consult);
+document.getElementById('numInput').addEventListener('keypress',e=>{if(e.key==='Enter')consult();});
+
+// --- PWA Install Button ---
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('btnInstall').style.display = 'inline-block';
+});
+document.getElementById('btnInstall').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('btnInstall').style.display = 'none';
+});
+</script>
+</body>
+</html>
+
+<!-- Cathédrale 1995 — © 2026 Architecte1995 & Kimi K 2.6 | MIT License -->
