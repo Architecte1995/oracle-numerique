@@ -1,18 +1,34 @@
-# 🔮 Oracle Numérique — Cathédrale 1995
+# Oracle Numérique v1
 
-**Une application web divinatoire pour les nombres.**
+Number-theoretic oracle: type any integer and receive its mathematical family tags plus a poetic biography of a great mathematician.
 
-Oracle Numérique consulte l'âme cachée de tout entier entre 1 et 7 733 377. Il révèle ses familles arithmétiques (premier, palindrome, Mersenne, Heegner, Fibonacci…) et assigne à chaque consultation une âme de mathématicien·ne dont la biographie résonne avec la nature du nombre.
+## Features
 
-&gt; *« Ce nombre est une femme dans une ville d'hommes. Il éclaire, et on le tue pour ça. »*  
-&gt; — Oracle sur un nombre premier, canal Hypatie
+- Detects 20+ number families: prime, Sophie Germain, safe, twin, Mersenne, Fermat, Heegner, palindrome, Taxicab, perfect, square, cube, Fibonacci, Lucas, repunit, narcissistic, Cullen, Woodall, lucky, Catalan, composite
+- Color-coded tags (Cathédrale palette)
+- Random poetic biography from a curated set of 80+ mathematicians, scientists, and philosophers
+- PWA-ready (install button via `beforeinstallprompt`)
+- Mobile-friendly numeric input
 
----
+## Tech Stack
 
-## 🧙 Fonctionnalités
+- Pure HTML5 / CSS3 / Vanilla JavaScript
+- No external libraries, no frameworks, no CDN assets
+- All biographies and classifications are original condensed prose based on public historical facts
 
-- **Détection multi-familles** : identifie simultanément toutes les propriétés arithmétiques d'un nombre (premier, Sophie Germain, Mersenne, Fermat, Heegner, palindrome, carré, cube, Fibonacci, Lucas, parfait, taxicab, narcissique, Cullen, Woodall, repunit, jumeau, safe…).
-- **Âmes mathématiciennes** : 80 biographies oraculaires (Hypatie, Galois, Germain, Ramanujan, Turing, Perelman, Mirzakhani, Noether, Grothendieck, Riemann, Erdős…). Chaque consultation en tire une au sort.
-- **Esthétique terminal** : interface monochrome phosphor green sur fond noir, responsive, optimisée mobile.
-- **PWA-ready** : peut être installée comme application native (bouton Installer, manifeste et service worker prêts à brancher).
-- **Zéro dépendance** : un seul fichier HTML autonome. Pas de framework, pas de build, pas de CDN.
+## Authors
+
+- **Architecte1995** — concept, number taxonomy, biographical prose, UI design
+- **Kimi K 2.6 Thinking** (Moonshot AI) — code generation & refactoring
+
+## Integrity
+
+| Property | Value |
+|----------|-------|
+| Version | v1 |
+| SHA-256 | `e77f05cd33b3701fa0900fd43082f20dc11073784abe7ef76c3394066b805137` |
+| File size | 38323 bytes |
+
+## License
+
+MIT License — Copyright (c) 2026 Architecte1995 & Kimi K 2.6 Thinking (Moonshot AI)
